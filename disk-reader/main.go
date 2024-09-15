@@ -36,28 +36,6 @@ func volumeExists(vol string) bool {
 	return err == nil
 }
 
-func getValidFileEntires(vol string) []string {
-	// we want mkv and mp4 files
-	validFiles := make([]string, 0)
-
-	last3 := func (w string) string {
-		return w[len(w)-3:]
-	}
-
-	filepath.Walk(vol, func(path string, info fs.FileInfo, err error) error {
-		if  last3(path) == "mp4" || last3(path) == "mkv" {
-			validFiles = append(validFiles, path)
-		}
-		return nil
-	})
-
-	for _, v := range validFiles {
-		fmt.Println(v)
-	}
-
-	return validFiles
-}
-
 func init() {
 	flag.StringVar(&vol, "volume", "", "Provide the name of the disk volume")
 	flag.Parse()
@@ -82,8 +60,27 @@ func main() {
 		panic("This volume doesn't exist")
 	}
 
+	volInfo, _ := os.Stat(filePath);
+
+	fmt.Printf("Volume name : %s\nVolume size: %d\n", volInfo.Name(), volInfo.Size())
 	if runtime.GOOS == "darwin" {
-		getValidFileEntires(filePath)
+
+		validFiles := make([]string, 0, volInfo.Size() / 8) // estimate start size
+
+		last3 := func(w string) string {
+			return w[len(w)-3:]
+		}
+
+		filepath.Walk(filePath, func(path string, info fs.FileInfo, err error) error {
+			if last3(path) == "mp4" || last3(path) == "mkv" {
+				validFiles = append(validFiles, path)
+			}
+			return nil
+		})
+
+		for _, f := range validFiles {
+			fmt.Println(f)
+		}
 
 	}
 }
