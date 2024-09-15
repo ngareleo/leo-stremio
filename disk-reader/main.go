@@ -1,5 +1,14 @@
 package main
 
+import (
+	"flag"
+	"fmt"
+	"io/fs"
+	"os"
+	"path/filepath"
+	"runtime"
+)
+
 // I am building the foundation of the "stream-box" (not final name)
 //
 // The big picture is to create a peer-to-peer streaming platform, for movies and tv-shows
@@ -14,13 +23,67 @@ package main
 // What I aim to achieve from this one, is simply being able to wire up your machine with a disk and stream on browser
 // via network. By opening up the connection to the internet, means you can stream your movies on the disk from anywhere
 // the peer-to-peer network will come later.
+
+var vol string
+
+func volumeExists(vol string) bool {
+	_, err := os.Stat(vol)
+
+	if os.IsNotExist(err) {
+		return false
+	}
+
+	return err == nil
+}
+
+func getValidFileEntires(vol string) []string {
+	// we want mkv and mp4 files
+	validFiles := make([]string, 0)
+
+	last3 := func (w string) string {
+		return w[len(w)-3:]
+	}
+
+	filepath.Walk(vol, func(path string, info fs.FileInfo, err error) error {
+		if  last3(path) == "mp4" || last3(path) == "mkv" {
+			validFiles = append(validFiles, path)
+		}
+		return nil
+	})
+
+	for _, v := range validFiles {
+		fmt.Println(v)
+	}
+
+	return validFiles
+}
+
+func init() {
+	flag.StringVar(&vol, "volume", "", "Provide the name of the disk volume")
+	flag.Parse()
+}
+
 func main() {
 	// 1. Read volume
-	// 2. Index the volume of movies (@Movies) and series (@TV) through the disk into a single flat single entry 
+	// 2. Index the volume of movies (@Movies) and series (@TV) through the disk into a single flat single entry
 	// 3. Check encodings and quality
 	// 4. Get details from IMDB api to rich up experience
 	// 5. Boot up the server
 	// 6. Client connects and gets index page
 	// 7. Choses item
 	// 8. Open stream
+
+	// walk the volume and look for "@Movies" and "@Tv"
+
+	filePath := filepath.Join("/Volumes", vol)
+
+	// Guards
+	if !volumeExists(filePath) {
+		panic("This volume doesn't exist")
+	}
+
+	if runtime.GOOS == "darwin" {
+		getValidFileEntires(filePath)
+
+	}
 }
