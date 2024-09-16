@@ -1,0 +1,17 @@
+<!--
+    This section renders a list of media 
+-->
+<div>
+    {{if .Files}} {{range .Files}}
+    <a hx-get="/open/{{.Id}}" hx-target="find #main-section"
+        >{{.Label}}<br
+    /></a>
+    {{end}} {{else}}
+    <p>Couldn't find anything for you to watch</p>
+    {{end}}
+</div>
+<style>
+    a {
+        size: "10px";
+    }
+</style>

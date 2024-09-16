@@ -7,11 +7,12 @@
         <title>Stream box client</title>
     </head>
     <body>
-        {{if .Files}} {{range .Files}}
-        <a href="/">{{.}}<br /></a>
-        {{end}} {{else}}
-        <p>Couldn't find anything for you to watch</p>
-        {{end}}
+        <div
+            hx-get="/index-section"
+            hx-trigger="load"
+            hx-swap="innerHTML"
+            id="main-section"
+        ></div>
     </body>
     <script
         src="https://unpkg.com/htmx.org@2.0.2"
@@ -20,10 +21,6 @@
     ></script>
     <script src="index.js"></script>
     <style>
-        a {
-            size: "10px";
-        }
-
         body {
             background-color: antiquewhite;
         }

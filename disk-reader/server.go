@@ -6,35 +6,77 @@ import (
 	"log/slog"
 	"net/http"
 	"time"
+
+	"github.com/gorilla/mux"
 )
 
+type File struct {
+	Id    int
+	Label string
+}
+
 type Dir struct {
-	Files []string
+	Files []File
 }
 
 type MiddleWare func(http.Handler) http.Handler
 
 func BootServer(dir Dir) {
 
-	mux := http.NewServeMux()
-	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+	httpMux := mux.NewRouter()
+
+	httpMux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		tmpl, err := template.ParseFiles("templates/index.html")
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-
 		tmpl.Execute(w, dir)
 	})
 
+	httpMux.HandleFunc("/index-section", func(w http.ResponseWriter, r *http.Request) {
+		tmpl, err := template.ParseFiles("templates/sections/index-section.html")
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		tmpl.Execute(w, dir)
+	})
 
-	mux.HandleFunc("/stream/{name}", func(w http.ResponseWriter, r *http.Request) {})
+	httpMux.HandleFunc("/open/{id}", func(w http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+		_, found := vars["id"]
+		if !found {
+			http.Error(w, "Cannot find media entry clicked", http.StatusInternalServerError)
+			return
+		}
+		
+		tmpl, err := template.ParseFiles("templates/sections/video-section.html")
+
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		tmpl.Execute(w, dir)
+	})
+
+	httpMux.HandleFunc("/stream/{id}", func(w http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+		_, found := vars["id"]
+		tmpl, err := template.ParseFiles("templates/stream.html")
+
+		if !found || err != nil {
+			http.Error(w, "Ooops. Something wrong in the kitchen.", http.StatusInternalServerError)
+			return
+		}
+		tmpl.Execute(w, dir)
+	})
 
 	s := &http.Server{
 		Addr:         ":3000",
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 10 * time.Second,
-		Handler:      logger()(mux),
+		Handler:      logger()(httpMux),
 	}
 
 	fmt.Println("Server listening on http://127.0.0.1:3000")

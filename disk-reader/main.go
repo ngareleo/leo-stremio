@@ -75,15 +75,19 @@ func main() {
 			}
 			return nil
 		})
-
-		// for _, f := range validFiles {
-		// 	fmt.Println(f)
-		// }
-
 	}
 
+	files := make([]File, 0, len(validFiles))
+
+	for i, f := range validFiles {
+		files = append(files, File{
+			Id: i,
+			Label: f,
+		})
+	}
+	
 	// Boot server
 	BootServer(Dir{
-		Files: validFiles,
+		Files: files,
 	})
 }
