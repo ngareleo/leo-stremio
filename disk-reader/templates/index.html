@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link rel="stylesheet" href="./index.css" />
+        <title>Stream box client</title>
+    </head>
+    <body>
+        {{if .Files}} {{range .Files}}
+        <a href="/">{{.}}<br /></a>
+        {{end}} {{else}}
+        <p>Couldn't find anything for you to watch</p>
+        {{end}}
+    </body>
+    <script
+        src="https://unpkg.com/htmx.org@2.0.2"
+        integrity="sha384-Y7hw+L/jvKeWIRRkqWYfPcvVxHzVzn5REgzbawhxAuQGwX1XWe70vji+VSeHOThJ"
+        crossorigin="anonymous"
+    ></script>
+    <script src="index.js"></script>
+    <style>
+        a {
+            size: "10px";
+        }
+
+        body {
+            background-color: antiquewhite;
+        }
+    </style>
+</html>

@@ -60,13 +60,11 @@ func main() {
 		panic("This volume doesn't exist")
 	}
 
-	volInfo, _ := os.Stat(filePath);
+	volInfo, _ := os.Stat(filePath)
 
 	fmt.Printf("Volume name : %s\nVolume size: %d\n", volInfo.Name(), volInfo.Size())
+	validFiles := make([]string, 0, volInfo.Size()/8) // estimate start size
 	if runtime.GOOS == "darwin" {
-
-		validFiles := make([]string, 0, volInfo.Size() / 8) // estimate start size
-
 		last3 := func(w string) string {
 			return w[len(w)-3:]
 		}
@@ -78,9 +76,14 @@ func main() {
 			return nil
 		})
 
-		for _, f := range validFiles {
-			fmt.Println(f)
-		}
+		// for _, f := range validFiles {
+		// 	fmt.Println(f)
+		// }
 
 	}
+
+	// Boot server
+	BootServer(Dir{
+		Files: validFiles,
+	})
 }

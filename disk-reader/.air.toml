@@ -1,0 +1,5 @@
+root="."
+
+[build]
+cmd="go run . --volume \"Andor\""
+include_ext = ["go", "html", "js", "css"]
