@@ -53,9 +53,35 @@ func loggingMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-func BootServer(volume Volume) {
+func WalkServer(r *mux.Router) {
+	err := r.Walk(func(route *mux.Route, router *mux.Router, ancestors []*mux.Route) error {
+		pathTemplate, err := route.GetPathTemplate()
+		if err == nil {
+			fmt.Println("ROUTE:", pathTemplate)
+		}
+		pathRegexp, err := route.GetPathRegexp()
+		if err == nil {
+			fmt.Println("\tPath regexp:", pathRegexp)
+		}
+		fmt.Println()
+		return nil
+	})
 
-	router := mux.NewRouter()
+	if err != nil {
+		fmt.Println(err)
+	}
+}
+
+
+var (
+	router *mux.Router = mux.NewRouter()
+	fsHandler http.Handler = http.FileServer(http.Dir("static"))
+)
+
+func BootServer(volume Volume) {
+	router.HandleFunc("/static/", func(w http.ResponseWriter, r *http.Request) {
+		fsHandler.ServeHTTP(w, r)
+	})
 
 	router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		tmpl, err := template.ParseFiles("templates/index.html")
@@ -76,7 +102,6 @@ func BootServer(volume Volume) {
 	})
 
 	router.HandleFunc("/open/{id}", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Println("Within answer block")
 		vars := mux.Vars(r)
 		id, found := vars["id"]
 		if !found {
@@ -128,6 +153,25 @@ func BootServer(volume Volume) {
 		Handler:      router,
 	}
 
+	fmt.Println(
+		`
+     _                            
+    | |                           
+ ___| |_ _ __ ___  __ _ _ __ ___  
+/ __| __| '__/ _ \/ _` + "`" + ` | '_ \` + "`" + ` _ \ 
+\__ \ |_| | |  __/ (_| | | | | | |
+|___/\__|_|  \___|\__,_|_| |_| |_|                                  
+                                  
+   _                             
+   | |                            
+   | |__   _____  __              
+   | '_ \ / _ \ \/ /              
+   | |_) | (_) >  <               
+   |_.__/ \___/_/\_\              
+`)
+	
+	WalkServer(router)
 	fmt.Println("Server listening on http://127.0.0.1:3000")
+
 	log.Fatal(s.ListenAndServe())
 }

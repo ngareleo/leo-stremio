@@ -1,15 +1,17 @@
 <!--
     This section renders a list of media 
 -->
-<div hx-boost="true">
+<div id="main-section">
     {{if .Files}} {{range .Files}}
-    <a href="/open/{{.Id}}" hx-target="find #main-section">{{.Label}}<br /></a>
+    <button
+        hx-get="/open/{{.Id}}"
+        hx-target="#main-section"
+        hx-push-url="true"
+        hx-swap="innerHTML"
+    >
+        {{.Label}}<br />
+    </button>
     {{end}} {{else}}
     <p>Couldn't find anything for you to watch</p>
     {{end}}
 </div>
-<style>
-    a {
-        size: "10px";
-    }
-</style>

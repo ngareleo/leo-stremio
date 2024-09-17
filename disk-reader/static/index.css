@@ -1,0 +1,14 @@
+* {
+    margin: 0;
+    border: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background-color: antiquewhite;
+}
+
+.main-section {
+    width: "100vw";
+    height: "1000vh";
+}

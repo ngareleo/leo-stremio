@@ -1,6 +1,12 @@
 <div>
-    <h1>{{.Label}}</h1>
+    <h2>{{.Label}}</h2>
     <p>Video player</p>
-    <video id="video-player" />
+    <video id="video-player"></video>
+    <script src="/static/stream.mjs" type="module"></script>
+    <style>
+        video {
+            width: "90%";
+            background-color: darksalmon;
+        }
+    </style>
 </div>
-<script src="../js/stream.js" />

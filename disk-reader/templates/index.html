@@ -3,11 +3,17 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <link rel="stylesheet" href="./index.css" />
+        <link rel="stylesheet" type="text/css" href="/static/index.css" />
+        <script
+            src="https://unpkg.com/htmx.org@2.0.2"
+            integrity="sha384-Y7hw+L/jvKeWIRRkqWYfPcvVxHzVzn5REgzbawhxAuQGwX1XWe70vji+VSeHOThJ"
+            crossorigin="anonymous"
+        ></script>
         <title>Stream box client</title>
     </head>
     <body>
-        <div id="main-section">
+        <h1>Stream Box</h1>
+        <div class="main-section">
             <div
                 hx-get="/index-section"
                 hx-trigger="load"
@@ -15,15 +21,4 @@
             />
         </div>
     </body>
-    <script
-        src="https://unpkg.com/htmx.org@2.0.2"
-        integrity="sha384-Y7hw+L/jvKeWIRRkqWYfPcvVxHzVzn5REgzbawhxAuQGwX1XWe70vji+VSeHOThJ"
-        crossorigin="anonymous"
-    ></script>
-    <script src="index.js"></script>
-    <style>
-        body {
-            background-color: antiquewhite;
-        }
-    </style>
 </html>
