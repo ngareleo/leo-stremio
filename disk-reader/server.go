@@ -15,7 +15,6 @@ import (
 
 type MiddleWare func(http.Handler) http.Handler
 
-
 type CustomResponseWriter struct {
 	http.ResponseWriter
 	statusCode int
@@ -25,7 +24,7 @@ type CustomResponseWriter struct {
 func NewCustomResponseWriter(w http.ResponseWriter) *CustomResponseWriter {
 	return &CustomResponseWriter{
 		ResponseWriter: w,
-		statusCode:     http.StatusOK, 
+		statusCode:     http.StatusOK,
 		body:           new(bytes.Buffer),
 	}
 }
@@ -36,25 +35,23 @@ func (rw *CustomResponseWriter) WriteHeader(code int) {
 }
 
 func (rw *CustomResponseWriter) Write(b []byte) (int, error) {
-	rw.body.Write(b) 
+	rw.body.Write(b)
 	return rw.ResponseWriter.Write(b)
 }
 
+func loggingMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
+		customRW := NewCustomResponseWriter(w)
 
-func loggingMiddleware (next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		slog.Info("incoming request", "path", r.URL.Path)
+		next.ServeHTTP(customRW, r)
 
-			customRW := NewCustomResponseWriter(w)
-			
-			slog.Info("incoming request", "path", r.URL.Path)
-			next.ServeHTTP(customRW, r)
-
-			if customRW.statusCode != 200 {
-				slog.Error("error during request", "message", customRW.body.String())
-			}
-		})
-	}
+		if customRW.statusCode != 200 {
+			slog.Error("error during request", "message", customRW.body.String())
+		}
+	})
+}
 
 func BootServer(volume Volume) {
 
@@ -87,7 +84,7 @@ func BootServer(volume Volume) {
 			return
 		}
 
-		intVal, err := strconv.Atoi(id);
+		intVal, err := strconv.Atoi(id)
 
 		if err != nil {
 			http.Error(w, "received invalid id; expected numeral", http.StatusBadRequest)
@@ -98,7 +95,7 @@ func BootServer(volume Volume) {
 
 		if notFound {
 			http.Error(w, "file not found", http.StatusBadRequest)
-			return 
+			return
 		}
 
 		tmpl, err := template.ParseFiles("templates/sections/video-section.html")
@@ -134,5 +131,3 @@ func BootServer(volume Volume) {
 	fmt.Println("Server listening on http://127.0.0.1:3000")
 	log.Fatal(s.ListenAndServe())
 }
-
-

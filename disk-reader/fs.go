@@ -34,7 +34,7 @@ func NewVolume(vol string) (Volume, error) {
 	}
 
 	slog.Info("Volume found", "name", info.Name(), "size", info.Size())
-	
+
 	validFiles := make([]string, 0, info.Size()/8) // estimate start size
 
 	if runtime.GOOS == "darwin" {
@@ -68,8 +68,7 @@ func NewVolume(vol string) (Volume, error) {
 	}, nil
 }
 
-
 func (vol Volume) FindFileById(id int) (File, bool) {
-	v, ok := vol.FileMap[id];
+	v, ok := vol.FileMap[id]
 	return v, ok
 }
