@@ -12,6 +12,15 @@ import (
 
 type MiddleWare func(http.Handler) http.Handler
 
+func logger() MiddleWare {
+	return func(h http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			slog.Info("incoming request", "path", r.URL.Path)
+			h.ServeHTTP(w, r)
+		})
+	}
+}
+
 func BootServer(volume Volume) {
 
 	httpMux := mux.NewRouter()
@@ -60,7 +69,6 @@ func BootServer(volume Volume) {
 			http.Error(w, "Missing ID Param", http.StatusBadRequest)
 			return
 		}
-
 		// open up a connections
 	})
 
@@ -72,14 +80,11 @@ func BootServer(volume Volume) {
 	}
 
 	fmt.Println("Server listening on http://127.0.0.1:3000")
-	s.ListenAndServe()
-}
+	err := s.ListenAndServe()
 
-func logger() MiddleWare {
-	return func(h http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			slog.Info("incoming request", "path", r.URL.Path)
-			h.ServeHTTP(w, r)
-		})
+	if err != nil {
+		slog.Error("error booting server", "message", err.Error())
 	}
 }
+
+
