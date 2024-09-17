@@ -35,7 +35,7 @@ func NewVolume(vol string) (Volume, error) {
 
 	slog.Info("Volume found", "name", info.Name(), "size", info.Size())
 
-	validFiles := make([]string, 0, info.Size()/8) // estimate start size
+	validFiles := make([]string, 0)
 
 	if runtime.GOOS == "darwin" {
 		last3 := func(w string) string {
