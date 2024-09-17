@@ -10,7 +10,6 @@ import (
 	"github.com/gorilla/mux"
 )
 
-
 type MiddleWare func(http.Handler) http.Handler
 
 func BootServer(volume Volume) {

@@ -20,12 +20,6 @@ type Volume struct {
 	Files    []File
 }
 
-func volumeExists(vol string) bool {
-	_, err := os.Stat(vol)
-
-	return err == nil
-}
-
 func NewVolume(vol string) (Volume, error) {
 
 	info, err := os.Stat(vol)
