@@ -1,10 +1,13 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"html/template"
+	"log"
 	"log/slog"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -12,20 +15,52 @@ import (
 
 type MiddleWare func(http.Handler) http.Handler
 
-func logger() MiddleWare {
-	return func(h http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			slog.Info("incoming request", "path", r.URL.Path)
-			h.ServeHTTP(w, r)
-		})
+
+type CustomResponseWriter struct {
+	http.ResponseWriter
+	statusCode int
+	body       *bytes.Buffer
+}
+
+func NewCustomResponseWriter(w http.ResponseWriter) *CustomResponseWriter {
+	return &CustomResponseWriter{
+		ResponseWriter: w,
+		statusCode:     http.StatusOK, 
+		body:           new(bytes.Buffer),
 	}
 }
 
+func (rw *CustomResponseWriter) WriteHeader(code int) {
+	rw.statusCode = code
+	rw.ResponseWriter.WriteHeader(code)
+}
+
+func (rw *CustomResponseWriter) Write(b []byte) (int, error) {
+	rw.body.Write(b) 
+	return rw.ResponseWriter.Write(b)
+}
+
+
+
+func loggingMiddleware (next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+			customRW := NewCustomResponseWriter(w)
+			
+			slog.Info("incoming request", "path", r.URL.Path)
+			next.ServeHTTP(customRW, r)
+
+			if customRW.statusCode != 200 {
+				slog.Error("error during request", "message", customRW.body.String())
+			}
+		})
+	}
+
 func BootServer(volume Volume) {
 
-	httpMux := mux.NewRouter()
+	router := mux.NewRouter()
 
-	httpMux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+	router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		tmpl, err := template.ParseFiles("templates/index.html")
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -34,7 +69,7 @@ func BootServer(volume Volume) {
 		tmpl.Execute(w, volume)
 	})
 
-	httpMux.HandleFunc("/index-section", func(w http.ResponseWriter, r *http.Request) {
+	router.HandleFunc("/index-section", func(w http.ResponseWriter, r *http.Request) {
 		tmpl, err := template.ParseFiles("templates/sections/index-section.html")
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -43,12 +78,27 @@ func BootServer(volume Volume) {
 		tmpl.Execute(w, volume)
 	})
 
-	httpMux.HandleFunc("/open/{id}", func(w http.ResponseWriter, r *http.Request) {
+	router.HandleFunc("/open/{id}", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Println("Within answer block")
 		vars := mux.Vars(r)
-		_, found := vars["id"]
+		id, found := vars["id"]
 		if !found {
-			http.Error(w, "Couldn't find the media entry you've clicked", http.StatusInternalServerError)
+			http.Error(w, "couldn't find the media entry you've clicked", http.StatusInternalServerError)
 			return
+		}
+
+		intVal, err := strconv.Atoi(id);
+
+		if err != nil {
+			http.Error(w, "received invalid id; expected numeral", http.StatusBadRequest)
+			return
+		}
+
+		file, notFound := volume.FindFileById(int(intVal))
+
+		if notFound {
+			http.Error(w, "file not found", http.StatusBadRequest)
+			return 
 		}
 
 		tmpl, err := template.ParseFiles("templates/sections/video-section.html")
@@ -58,10 +108,10 @@ func BootServer(volume Volume) {
 			return
 		}
 
-		tmpl.Execute(w, volume)
+		tmpl.Execute(w, file)
 	})
 
-	httpMux.HandleFunc("/stream/{id}", func(w http.ResponseWriter, r *http.Request) {
+	router.HandleFunc("/stream/{id}", func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		_, found := vars["id"]
 
@@ -72,19 +122,17 @@ func BootServer(volume Volume) {
 		// open up a connections
 	})
 
+	router.Use(loggingMiddleware)
+
 	s := &http.Server{
 		Addr:         ":3000",
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 10 * time.Second,
-		Handler:      logger()(httpMux),
+		Handler:      router,
 	}
 
 	fmt.Println("Server listening on http://127.0.0.1:3000")
-	err := s.ListenAndServe()
-
-	if err != nil {
-		slog.Error("error booting server", "message", err.Error())
-	}
+	log.Fatal(s.ListenAndServe())
 }
 
 

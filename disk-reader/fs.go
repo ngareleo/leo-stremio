@@ -18,6 +18,7 @@ type File struct {
 type Volume struct {
 	Location string
 	Files    []File
+	FileMap  map[int]File
 }
 
 func NewVolume(vol string) (Volume, error) {
@@ -50,16 +51,25 @@ func NewVolume(vol string) (Volume, error) {
 	}
 
 	files := make([]File, 0, len(validFiles))
+	fileMap := make(map[int]File, len(validFiles))
 
 	for i, f := range validFiles {
-		files = append(files, File{
+		temp := File{
 			Id:    i,
 			Label: f,
-		})
+		}
+		files = append(files, temp)
+		fileMap[i] = temp
 	}
 
 	return Volume{
 		Location: vol,
 		Files:    files,
 	}, nil
+}
+
+
+func (vol Volume) FindFileById(id int) (File, bool) {
+	v, ok := vol.FileMap[id];
+	return v, ok
 }
