@@ -72,9 +72,8 @@ func WalkServer(r *mux.Router) {
 	}
 }
 
-
 var (
-	router *mux.Router = mux.NewRouter()
+	router    *mux.Router  = mux.NewRouter()
 	fsHandler http.Handler = http.FileServer(http.Dir("static"))
 )
 
@@ -169,7 +168,7 @@ func BootServer(volume Volume) {
    | |_) | (_) >  <               
    |_.__/ \___/_/\_\              
 `)
-	
+
 	WalkServer(router)
 	fmt.Println("Server listening on http://127.0.0.1:3000")
 
