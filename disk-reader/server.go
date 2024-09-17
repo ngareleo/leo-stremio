@@ -10,18 +10,10 @@ import (
 	"github.com/gorilla/mux"
 )
 
-type File struct {
-	Id    int
-	Label string
-}
-
-type Dir struct {
-	Files []File
-}
 
 type MiddleWare func(http.Handler) http.Handler
 
-func BootServer(dir Dir) {
+func BootServer(volume Volume) {
 
 	httpMux := mux.NewRouter()
 
@@ -31,7 +23,7 @@ func BootServer(dir Dir) {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		tmpl.Execute(w, dir)
+		tmpl.Execute(w, volume)
 	})
 
 	httpMux.HandleFunc("/index-section", func(w http.ResponseWriter, r *http.Request) {
@@ -40,36 +32,37 @@ func BootServer(dir Dir) {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		tmpl.Execute(w, dir)
+		tmpl.Execute(w, volume)
 	})
 
 	httpMux.HandleFunc("/open/{id}", func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		_, found := vars["id"]
 		if !found {
-			http.Error(w, "Cannot find media entry clicked", http.StatusInternalServerError)
+			http.Error(w, "Couldn't find the media entry you've clicked", http.StatusInternalServerError)
 			return
 		}
-		
+
 		tmpl, err := template.ParseFiles("templates/sections/video-section.html")
 
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		tmpl.Execute(w, dir)
+
+		tmpl.Execute(w, volume)
 	})
 
 	httpMux.HandleFunc("/stream/{id}", func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		_, found := vars["id"]
-		tmpl, err := template.ParseFiles("templates/stream.html")
 
-		if !found || err != nil {
-			http.Error(w, "Ooops. Something wrong in the kitchen.", http.StatusInternalServerError)
+		if !found {
+			http.Error(w, "Missing ID Param", http.StatusBadRequest)
 			return
 		}
-		tmpl.Execute(w, dir)
+
+		// open up a connections
 	})
 
 	s := &http.Server{

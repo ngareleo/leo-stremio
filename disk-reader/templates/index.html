@@ -7,12 +7,13 @@
         <title>Stream box client</title>
     </head>
     <body>
-        <div
-            hx-get="/index-section"
-            hx-trigger="load"
-            hx-swap="innerHTML"
-            id="main-section"
-        ></div>
+        <div id="main-section">
+            <div
+                hx-get="/index-section"
+                hx-trigger="load"
+                hx-swap="innerHTML"
+            />
+        </div>
     </body>
     <script
         src="https://unpkg.com/htmx.org@2.0.2"
