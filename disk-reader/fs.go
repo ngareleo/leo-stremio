@@ -2,8 +2,8 @@ package main
 
 import (
 	"errors"
-	"fmt"
 	"io/fs"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -32,7 +32,8 @@ func NewVolume(vol string) (Volume, error) {
 		return Volume{}, errors.New("unknown error")
 	}
 
-	fmt.Printf("Volume name : %s\nVolume size: %d\n", info.Name(), info.Size())
+	slog.Info("Volume found", "name", info.Name(), "size", info.Size())
+	
 	validFiles := make([]string, 0, info.Size()/8) // estimate start size
 
 	if runtime.GOOS == "darwin" {
