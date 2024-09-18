@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 )
 
 // I am building the foundation of the "stream-box" (not final name)
@@ -42,7 +43,14 @@ func main() {
 (______/  \__)_|   |_____)_____|_|_|_|  |______/ \___(_/ \_)
 \`)
 
-	filePath := filepath.Join("/Volumes", vol)
+	var filePath string
+
+	if runtime.GOOS == "darwin" {
+		filePath = filepath.Join("/Volumes", vol)
+	} else {
+		panic("oops. Yet to map disks for this OS. Stay tuned")
+	}
+
 	vol, err := NewVolume(filePath)
 
 	if os.IsNotExist(err) {

@@ -53,7 +53,6 @@ func loggingMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-
 func BootServer(volume Volume) {
 	const port = "3000"
 	router := mux.NewRouter()
@@ -107,14 +106,14 @@ func BootServer(volume Volume) {
 		}
 
 		file, notFound := volume.FindFileById(int(intVal))
-		
+
 		if notFound {
 			errTmpl.Execute(w, err)
 			http.Error(w, "file not found", http.StatusBadRequest)
 			return
 		}
 
-		tmpl, err := template.ParseFiles("templates/sections/video-section.html", )
+		tmpl, err := template.ParseFiles("templates/sections/video-section.html")
 
 		if err != nil {
 			errTmpl.Execute(w, err)

@@ -7,7 +7,6 @@ import (
 	"log/slog"
 	"os"
 	"path/filepath"
-	"runtime"
 )
 
 type File struct {
@@ -42,18 +41,16 @@ func NewVolume(vol string) (Volume, error) {
 
 	validFiles := make([]string, 0)
 
-	if runtime.GOOS == "darwin" {
-		last3 := func(w string) string {
-			return w[len(w)-3:]
-		}
-
-		filepath.Walk(vol, func(path string, info fs.FileInfo, err error) error {
-			if last3(path) == "mp4" || last3(path) == "mkv" {
-				validFiles = append(validFiles, path)
-			}
-			return nil
-		})
+	last3 := func(w string) string {
+		return w[len(w)-3:]
 	}
+
+	filepath.Walk(vol, func(path string, info fs.FileInfo, err error) error {
+		if last3(path) == "mp4" || last3(path) == "mkv" {
+			validFiles = append(validFiles, path)
+		}
+		return nil
+	})
 
 	files := make([]File, 0, len(validFiles))
 	fileMap := make(map[int]File, len(validFiles))
