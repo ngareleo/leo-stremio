@@ -3,12 +3,7 @@
 -->
 <div id="main-section">
     {{if .Files}} {{range .Files}}
-    <button
-        hx-get="/open/{{.Id}}"
-        hx-target="#main-section"
-        hx-push-url="true"
-        hx-swap="innerHTML"
-    >
+    <button hx-get="/open/{{.Id}}" hx-target="#main-section" hx-push-url="true">
         {{.Label}}<br />
     </button>
     {{end}} {{else}}

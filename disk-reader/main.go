@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"os"
 	"path/filepath"
 )
@@ -32,6 +33,15 @@ func init() {
 // Todo: Check encodings and quality
 // Todo: Get details from IMDB api to rich up experience
 func main() {
+	fmt.Println(`
+		  ______                                 ______             
+ / _____) _                             (____  \            
+( (____ _| |_  ____ _____ _____ ____     ____)  ) ___ _   _ 
+ \____ (_   _)/ ___) ___ (____ |    \   |  __  ( / _ ( \ / )
+ _____) )| |_| |   | ____/ ___ | | | |  | |__)  ) |_| ) X ( 
+(______/  \__)_|   |_____)_____|_|_|_|  |______/ \___(_/ \_)
+\`)
+
 	filePath := filepath.Join("/Volumes", vol)
 	vol, err := NewVolume(filePath)
 

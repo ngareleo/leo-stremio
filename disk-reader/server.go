@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"html/template"
 	"log"
@@ -41,10 +42,9 @@ func (rw *CustomResponseWriter) Write(b []byte) (int, error) {
 
 func loggingMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-
 		customRW := NewCustomResponseWriter(w)
-
 		slog.Info("incoming request", "path", r.URL.Path)
+
 		next.ServeHTTP(customRW, r)
 
 		if customRW.statusCode != 200 {
@@ -53,31 +53,18 @@ func loggingMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-func WalkServer(r *mux.Router) {
-	err := r.Walk(func(route *mux.Route, router *mux.Router, ancestors []*mux.Route) error {
-		pathTemplate, err := route.GetPathTemplate()
-		if err == nil {
-			fmt.Println("ROUTE:", pathTemplate)
-		}
-		pathRegexp, err := route.GetPathRegexp()
-		if err == nil {
-			fmt.Println("\tPath regexp:", pathRegexp)
-		}
-		fmt.Println()
-		return nil
-	})
-
-	if err != nil {
-		fmt.Println(err)
-	}
-}
-
-var (
-	router    *mux.Router  = mux.NewRouter()
-	fsHandler http.Handler = http.FileServer(http.Dir("static"))
-)
 
 func BootServer(volume Volume) {
+	const port = "3000"
+	router := mux.NewRouter()
+	fsHandler := http.FileServer(http.Dir("static"))
+	errTmpl, ePageErr := template.ParseFiles("templates/sections/error.html")
+
+	if ePageErr != nil {
+		slog.Error("couldn't load error page template")
+		panic("")
+	}
+
 	router.HandleFunc("/static/", func(w http.ResponseWriter, r *http.Request) {
 		fsHandler.ServeHTTP(w, r)
 	})
@@ -85,6 +72,7 @@ func BootServer(volume Volume) {
 	router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		tmpl, err := template.ParseFiles("templates/index.html")
 		if err != nil {
+			errTmpl.Execute(w, err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -94,6 +82,7 @@ func BootServer(volume Volume) {
 	router.HandleFunc("/index-section", func(w http.ResponseWriter, r *http.Request) {
 		tmpl, err := template.ParseFiles("templates/sections/index-section.html")
 		if err != nil {
+			errTmpl.Execute(w, err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -104,27 +93,31 @@ func BootServer(volume Volume) {
 		vars := mux.Vars(r)
 		id, found := vars["id"]
 		if !found {
-			http.Error(w, "couldn't find the media entry you've clicked", http.StatusInternalServerError)
+			errTmpl.Execute(w, errors.New("missing id in url params"))
+			http.Error(w, "couldn't find the media entry you've clicked", http.StatusBadRequest)
 			return
 		}
 
 		intVal, err := strconv.Atoi(id)
 
 		if err != nil {
+			errTmpl.Execute(w, err)
 			http.Error(w, "received invalid id; expected numeral", http.StatusBadRequest)
 			return
 		}
 
 		file, notFound := volume.FindFileById(int(intVal))
-
+		
 		if notFound {
+			errTmpl.Execute(w, err)
 			http.Error(w, "file not found", http.StatusBadRequest)
 			return
 		}
 
-		tmpl, err := template.ParseFiles("templates/sections/video-section.html")
+		tmpl, err := template.ParseFiles("templates/sections/video-section.html", )
 
 		if err != nil {
+			errTmpl.Execute(w, err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -137,6 +130,7 @@ func BootServer(volume Volume) {
 		_, found := vars["id"]
 
 		if !found {
+			errTmpl.Execute(w, errors.New("missing id in url params"))
 			http.Error(w, "Missing ID Param", http.StatusBadRequest)
 			return
 		}
@@ -146,31 +140,12 @@ func BootServer(volume Volume) {
 	router.Use(loggingMiddleware)
 
 	s := &http.Server{
-		Addr:         ":3000",
+		Addr:         fmt.Sprintf(":%s", port),
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 10 * time.Second,
 		Handler:      router,
 	}
 
-	fmt.Println(
-		`
-     _                            
-    | |                           
- ___| |_ _ __ ___  __ _ _ __ ___  
-/ __| __| '__/ _ \/ _` + "`" + ` | '_ \` + "`" + ` _ \ 
-\__ \ |_| | |  __/ (_| | | | | | |
-|___/\__|_|  \___|\__,_|_| |_| |_|                                  
-                                  
-   _                             
-   | |                            
-   | |__   _____  __              
-   | '_ \ / _ \ \/ /              
-   | |_) | (_) >  <               
-   |_.__/ \___/_/\_\              
-`)
-
-	WalkServer(router)
-	fmt.Println("Server listening on http://127.0.0.1:3000")
-
+	slog.Info("Server booted", "port", port, "address", fmt.Sprintf("http://localhost:%s", port))
 	log.Fatal(s.ListenAndServe())
 }

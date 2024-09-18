@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"io/fs"
 	"log/slog"
 	"os"
@@ -13,6 +14,10 @@ type File struct {
 	Id       int
 	Label    string
 	ImageUrl string
+}
+
+func (file File) String() string {
+	return fmt.Sprintf("Label [%s], Id [%d], ImageUrl [%s]", file.Label, file.Id, file.ImageUrl)
 }
 
 type Volume struct {
@@ -65,10 +70,15 @@ func NewVolume(vol string) (Volume, error) {
 	return Volume{
 		Location: vol,
 		Files:    files,
+		FileMap:  fileMap,
 	}, nil
 }
 
 func (vol Volume) FindFileById(id int) (File, bool) {
-	v, ok := vol.FileMap[id]
-	return v, ok
+	for _, f := range vol.Files {
+		if f.Id == id {
+			return f, true
+		}
+	}
+	return File{}, false
 }
