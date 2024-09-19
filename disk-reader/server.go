@@ -105,9 +105,9 @@ func BootServer(volume Volume) {
 			return
 		}
 
-		file, notFound := volume.FindFileById(int(intVal))
+		file, found := volume.FindFileById(int(intVal))
 
-		if notFound {
+		if !found {
 			errTmpl.Execute(w, err)
 			http.Error(w, "file not found", http.StatusBadRequest)
 			return

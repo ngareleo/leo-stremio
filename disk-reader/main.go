@@ -43,15 +43,15 @@ func main() {
 (______/  \__)_|   |_____)_____|_|_|_|  |______/ \___(_/ \_)
 \`)
 
-	var filePath string
+	var fp string
 
 	if runtime.GOOS == "darwin" {
-		filePath = filepath.Join("/Volumes", vol)
+		fp = filepath.Join("/Volumes", vol)
 	} else {
 		panic("oops. Yet to map disks for this OS. Stay tuned")
 	}
 
-	vol, err := NewVolume(filePath)
+	vol, err := NewVolume(fp)
 
 	if os.IsNotExist(err) {
 		panic(err.Error())

@@ -39,7 +39,7 @@ func NewVolume(vol string) (Volume, error) {
 
 	slog.Info("Volume found", "name", info.Name(), "size", info.Size())
 
-	validFiles := make([]string, 0)
+	validfiles := make([]string, 0)
 
 	last3 := func(w string) string {
 		return w[len(w)-3:]
@@ -47,35 +47,31 @@ func NewVolume(vol string) (Volume, error) {
 
 	filepath.Walk(vol, func(path string, info fs.FileInfo, err error) error {
 		if last3(path) == "mp4" || last3(path) == "mkv" {
-			validFiles = append(validFiles, path)
+			validfiles = append(validfiles, path)
 		}
 		return nil
 	})
 
-	files := make([]File, 0, len(validFiles))
-	fileMap := make(map[int]File, len(validFiles))
+	files := make([]File, 0, len(validfiles))
+	filemap := make(map[int]File, len(validfiles))
 
-	for i, f := range validFiles {
+	for i, f := range validfiles {
 		temp := File{
 			Id:    i,
 			Label: f,
 		}
 		files = append(files, temp)
-		fileMap[i] = temp
+		filemap[i] = temp
 	}
 
 	return Volume{
 		Location: vol,
 		Files:    files,
-		FileMap:  fileMap,
+		FileMap:  filemap,
 	}, nil
 }
 
 func (vol Volume) FindFileById(id int) (File, bool) {
-	for _, f := range vol.Files {
-		if f.Id == id {
-			return f, true
-		}
-	}
-	return File{}, false
+	f, ok := vol.FileMap[id]
+	return f, ok
 }
