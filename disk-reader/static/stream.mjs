@@ -8,18 +8,18 @@ if (env == null) {
 }
 
 async function pingStreamServer() {
-    const { route, id } = env;
-    let message;
+    const { id } = env;
+    let response;
     try {
-        message = await fetch(`${window.location.origin}/stream/${id}`);
+        response = await fetch(`${window.location.origin}/stream/${id}`);
     } catch (e) {
         console.error("something went wrong");
     }
+    const message = await response.text();
     console.log("message from server ", message);
 }
 
 async function main() {
-    console.log(window.location);
     await pingStreamServer();
 }
 

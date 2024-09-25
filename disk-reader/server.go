@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"html/template"
+	"io"
 	"log"
 	"log/slog"
 	"net/http"
@@ -132,6 +133,7 @@ func BootServer(volume Volume) {
 			return
 		}
 		// open up a connections2
+		io.WriteString(w, "Hello traveler")
 	})
 
 	router.Use(loggingMiddleware)

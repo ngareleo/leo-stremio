@@ -1,16 +1,23 @@
 <div class="container" data-media-id="{{.Id}}">
     <h2>{{.Label}}</h2>
     <p>Video player</p>
-    <video id="video-player"></video>
+    <div class="video-container">
+        <video id="video-player"></video>
+    </div>
     <script src="/static/stream.mjs" type="module"></script>
     <style>
         .container {
             width: 100%;
             height: 100%;
+            background-color: bisque;
         }
-
+        #video-container {
+            width: 100%;
+            height: "720px";
+        }
         video {
-            width: "90%";
+            height: "100%";
+            width: "100%";
             background-color: black;
         }
     </style>
