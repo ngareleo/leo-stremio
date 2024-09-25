@@ -1,9 +1,14 @@
-<div>
+<div class="container">
     <h2>{{.Label}}</h2>
     <p>Video player</p>
     <video id="video-player"></video>
     <script src="/static/stream.mjs" type="module"></script>
     <style>
+        .container {
+            width: 100%;
+            height: 100%;
+        }
+
         video {
             width: "90%";
             background-color: black;

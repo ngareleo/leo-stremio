@@ -42,31 +42,29 @@ func (rw *CustomResponseWriter) Write(b []byte) (int, error) {
 
 func loggingMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		customRW := NewCustomResponseWriter(w)
+		customwriter := NewCustomResponseWriter(w)
 		slog.Info("incoming request", "path", r.URL.Path)
 
-		next.ServeHTTP(customRW, r)
+		next.ServeHTTP(customwriter, r)
 
-		if customRW.statusCode != 200 {
-			slog.Error("error during request", "message", customRW.body.String())
+		if customwriter.statusCode != 200 {
+			slog.Error("error during request", "message", customwriter.body.String())
 		}
 	})
 }
 
-func BootServer(volume Volume) {
-	const port = "3000"
+const port = "3000"
+
+func BootServer(volume Volume) {	
 	router := mux.NewRouter()
-	fsHandler := http.FileServer(http.Dir("static"))
-	errTmpl, ePageErr := template.ParseFiles("templates/sections/error.html")
-
-	if ePageErr != nil {
+	errTmpl, err1 := template.ParseFiles("templates/sections/error.html")
+	if err1 != nil {
 		slog.Error("couldn't load error page template")
-		panic("")
+		panic("couldn't load error page template")
 	}
-
-	router.HandleFunc("/static/", func(w http.ResponseWriter, r *http.Request) {
-		fsHandler.ServeHTTP(w, r)
-	})
+	
+	fshandler := http.FileServer(http.Dir("./static"))
+	router.PathPrefix("/static/").Handler(http.StripPrefix("/static", fshandler))
 
 	router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		tmpl, err := template.ParseFiles("templates/index.html")
@@ -133,7 +131,7 @@ func BootServer(volume Volume) {
 			http.Error(w, "Missing ID Param", http.StatusBadRequest)
 			return
 		}
-		// open up a connections
+		// open up a connections2
 	})
 
 	router.Use(loggingMiddleware)

@@ -3,10 +3,22 @@
 -->
 <div id="main-section">
     {{if .Files}} {{range .Files}}
-    <button hx-get="/open/{{.Id}}" hx-target="#main-section" hx-push-url="true">
+    <a hx-get="/open/{{.Id}}" hx-target="#main-section" hx-push-url="true">
         {{.Label}}<br />
-    </button>
+    </a>
     {{end}} {{else}}
     <p>Couldn't find anything for you to watch</p>
     {{end}}
+
+    <style>
+        a {
+            text-decoration: underline;
+            cursor: pointer;
+        }
+
+        #main-section {
+            width: "100%";
+            height: "100%";
+        }
+    </style>
 </div>
